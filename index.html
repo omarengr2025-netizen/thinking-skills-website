@@ -130,10 +130,15 @@ section.block{padding:100px 0}
 .filters{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:28px}
 .filter{font-family:var(--display);font-weight:700;font-size:.95rem;padding:8px 16px;border-radius:999px;border:2px solid var(--line);background:transparent;color:var(--ink);cursor:pointer}
 .filter[aria-pressed="true"]{border-color:var(--ink);background:var(--ink);color:var(--paper)}
-.course-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(250px,1fr));gap:18px}
+.course-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(min(100%,340px),1fr));gap:18px}
 .course{background:var(--surface);border:2px solid var(--line);border-radius:20px;padding:24px;display:flex;flex-direction:column;border-top:10px solid var(--c)}
-.course .tag{font-family:var(--display);font-weight:700;font-size:.9rem;color:var(--c)}
-.course.c-black .tag{color:var(--black-text)}
+.course .code{font-family:var(--display);font-weight:800;font-size:.95rem;letter-spacing:.04em;color:var(--c)}
+.course.c-black .code{color:var(--black-text)}
+.course .tags{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:12px}
+.pill{font-family:var(--display);font-weight:700;font-size:.8rem;padding:4px 10px;border-radius:999px;background:var(--c);color:#fff}
+.pill.c-black{box-shadow:inset 0 0 0 1.5px var(--black-text)}
+.course .meta{font-family:var(--display);font-size:.88rem;color:var(--ink-soft);margin-bottom:16px}
+.course .go.linkbtn{align-self:flex-start;text-decoration-color:var(--c)}
 .course.c-black{border-top-color:var(--black-text)}
 .course h3{font-size:1.35rem;font-weight:700;margin:8px 0 10px}
 .course p{color:var(--ink-soft);font-size:1rem;margin:0 0 18px;flex:1}
@@ -329,14 +334,18 @@ footer a{text-decoration:none}
 
 <script>
 (function(){
-  var CONTACT_EMAIL = "info@activethinkingskills.com"; // replace with your address
+  var CONTACT_EMAIL = "omarengr2025@gmail.com";
 
-  // Edit this list with your real courses. link = where the course lives (LMS, Teams, YouTube, etc.)
+  // Courses. skills: first one sets the card colour. link: optional public page for the course.
   var COURSES = [
-    { skill:"Problem solving", title:"Structured problem solving", desc:"A repeatable method for defining a problem, finding root causes and testing solutions.", link:"" },
-    { skill:"Critical thinking", title:"Thinking about evidence", desc:"Recognise reasoning errors, judge the strength of a claim, and build arguments that hold up.", link:"" },
-    { skill:"Innovative thinking", title:"Generating better ideas", desc:"Techniques for producing and combining ideas, and choosing which ones to develop.", link:"" },
-    { skill:"Decision making", title:"Deciding under uncertainty", desc:"Weighted criteria, trade-offs and risk – tools for decisions with no obvious answer.", link:"" }
+    { code:"ARCH 422", title:"Structural Design for Buildings",
+      desc:"Match the structural system to how a building is used and shaped, then design its concrete beams, columns and slabs and its steel tension members, columns and beams – choosing members that are safe and economical.",
+      skills:["Problem solving","Decision making","Critical thinking"],
+      meta:"3 credit hours · Fall & Spring · Prerequisite: ARCH 313", link:"" },
+    { code:"ARCH 450", title:"Construction Project Planning and Control",
+      desc:"Plan, schedule and control real construction projects: CPM and PERT networks, resource levelling, risk, cash flow and earned value – with hands-on work in Primavera, BIM and 4D tools.",
+      skills:["Decision making","Problem solving","Critical thinking","Innovative thinking"],
+      meta:"3 credit hours · Fall & Spring · Prerequisite: ARCH 440", link:"" }
   ];
   var COLORS = {"Problem solving":"c-blue","Critical thinking":"c-red","Innovative thinking":"c-green","Decision making":"c-black"};
 
@@ -361,15 +370,22 @@ footer a{text-decoration:none}
   function render(){
     [].forEach.call(fEl.children, function(b){ b.setAttribute("aria-pressed", b.dataset.skill === current); });
     gEl.innerHTML = "";
-    var list = COURSES.filter(function(c){ return current === "All" || c.skill === current; });
+    var list = COURSES.filter(function(c){ return current === "All" || c.skills.indexOf(current) > -1; });
     list.forEach(function(c){
-      var el = document.createElement("article"); el.className = "course " + COLORS[c.skill];
-      var tag = document.createElement("span"); tag.className = "tag"; tag.textContent = c.skill;
+      var el = document.createElement("article"); el.className = "course " + COLORS[c.skills[0]];
+      var code = document.createElement("span"); code.className = "code"; code.textContent = c.code;
       var h = document.createElement("h3"); h.textContent = c.title;
       var p = document.createElement("p"); p.textContent = c.desc;
-      el.appendChild(tag); el.appendChild(h); el.appendChild(p);
-      if(c.link){ var a = document.createElement("a"); a.className = "go"; a.href = c.link; a.target = "_blank"; a.rel = "noopener"; a.textContent = "Open course"; el.appendChild(a); }
-      else { var s = document.createElement("span"); s.className = "go"; s.style.color = "var(--ink-soft)"; s.textContent = "Opening soon"; el.appendChild(s); }
+      var tags = document.createElement("div"); tags.className = "tags";
+      c.skills.forEach(function(s){ var t = document.createElement("span"); t.className = "pill " + COLORS[s]; t.textContent = s; tags.appendChild(t); });
+      var m = document.createElement("div"); m.className = "meta"; m.textContent = c.meta;
+      el.appendChild(code); el.appendChild(h); el.appendChild(p); el.appendChild(tags); el.appendChild(m);
+      if(c.link){ var a = document.createElement("a"); a.className = "go"; a.href = c.link; a.target = "_blank"; a.rel = "noopener"; a.textContent = "Open course page"; el.appendChild(a); }
+      else {
+        var b = document.createElement("button"); b.className = "go linkbtn"; b.textContent = "Ask about this course";
+        b.addEventListener("click", function(){ var f = document.getElementById("cf"); f.topic.value = "A course question"; f.message.value = "Question about " + c.code + " (" + c.title + "): "; go("contact"); setTimeout(function(){ f.message.focus({preventScroll:true}); }, 600); });
+        el.appendChild(b);
+      }
       gEl.appendChild(el);
     });
     emptyEl.hidden = list.length > 0;
